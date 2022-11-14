@@ -27,7 +27,7 @@ from backend.common.time import get_soon_expire_ts
 from backend.service.constants import SubjectRelationType
 from backend.service.models import Subject
 
-from .serializers import GroupSLZ, QueryRoleSLZ, UserNewbieSLZ, UserNewbieUpdateSLZ
+from .serializers import GroupSLZ, QueryGroupSLZ, QueryRoleSLZ, UserNewbieSLZ, UserNewbieUpdateSLZ
 
 
 class UserGroupViewSet(GenericViewSet):
@@ -38,13 +38,18 @@ class UserGroupViewSet(GenericViewSet):
 
     @swagger_auto_schema(
         operation_description="我的权限-用户组列表",
+        query_serializer=QueryGroupSLZ(label="query_group"),
         responses={status.HTTP_200_OK: SubjectGroupSLZ(label="用户组", many=True)},
         tags=["user"],
     )
     def list(self, request, *args, **kwargs):
+        slz = QueryGroupSLZ(data=request.query_params)
+        slz.is_valid(raise_exception=True)
+        system_id = slz.validated_data["system_id"]
+
         subject = Subject.from_username(request.user.username)
         limit, offset = CustomPageNumberPagination().get_limit_offset_pair(request)
-        count, relations = self.biz.list_paging_subject_group(subject, limit=limit, offset=offset)
+        count, relations = self.biz.list_paging_subject_group(subject, system_id=system_id, limit=limit, offset=offset)
         slz = GroupSLZ(instance=relations, many=True)
         return Response({"count": count, "results": slz.data})
 
@@ -100,15 +105,20 @@ class UserGroupRenewViewSet(GenericViewSet):
 
     @swagger_auto_schema(
         operation_description="用户即将过期用户组列表",
+        query_serializer=QueryGroupSLZ(label="query_group"),
         responses={status.HTTP_200_OK: SubjectGroupSLZ(label="用户组", many=True)},
         tags=["user"],
     )
     def list(self, request, *args, **kwargs):
+        slz = QueryGroupSLZ(data=request.query_params)
+        slz.is_valid(raise_exception=True)
+        system_id = slz.validated_data["system_id"]
+
         subject = Subject.from_username(request.user.username)
         limit, offset = CustomPageNumberPagination().get_limit_offset_pair(request)
         expired_at = get_soon_expire_ts()
         count, relations = self.group_biz.list_paging_subject_group_before_expired_at(
-            subject, expired_at=expired_at, limit=limit, offset=offset
+            subject, system_id=system_id, expired_at=expired_at, limit=limit, offset=offset
         )
         return Response({"count": count, "results": [one.dict() for one in relations]})
 

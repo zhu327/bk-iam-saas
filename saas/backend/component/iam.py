@@ -273,12 +273,21 @@ def list_all_subject_member(_type: str, id: str) -> List[Dict]:
     return list_all_data_by_paging(list_paging_subject_member, 1000)
 
 
-def get_subject_groups(_type: str, id: str, expired_at: int = 0, limit: int = 10, offset: int = 0) -> Dict:
+def get_subject_groups(
+    _type: str, id: str, system_id: str = "", expired_at: int = 0, limit: int = 10, offset: int = 0
+) -> Dict:
     """
     获取subject的关系列表
     """
     url_path = "/api/v1/web/subject-groups"
-    params = {"type": _type, "id": id, "before_expired_at": expired_at, "limit": limit, "offset": offset}
+    params = {
+        "type": _type,
+        "id": id,
+        "system_id": system_id,
+        "before_expired_at": expired_at,
+        "limit": limit,
+        "offset": offset,
+    }
     return _call_iam_api(http_get, url_path, data=params)
 
 
@@ -291,7 +300,7 @@ def list_all_subject_groups(_type: str, id: str, expired_at: int = 0) -> List[Di
         """[分页]获取subject-group"""
         limit = page_size
         offset = (page - 1) * page_size
-        data = get_subject_groups(_type, id, expired_at, limit, offset)
+        data = get_subject_groups(_type, id, "", expired_at, limit, offset)
         return data["count"], data["results"]
 
     return list_all_data_by_paging(list_paging_subject_groups, 1000)

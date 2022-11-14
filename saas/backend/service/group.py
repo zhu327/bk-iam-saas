@@ -149,11 +149,13 @@ class GroupService:
         """
         iam.check_subject_groups_quota(subject.type, subject.id, group_ids)
 
-    def list_subject_group(self, subject: Subject, limit: int = 10, offset: int = 0) -> Tuple[int, List[SubjectGroup]]:
+    def list_subject_group(
+        self, subject: Subject, system_id: str = "", limit: int = 10, offset: int = 0
+    ) -> Tuple[int, List[SubjectGroup]]:
         """
         查询Subject的Group关系列表
         """
-        iam_data = iam.get_subject_groups(subject.type, subject.id, limit=limit, offset=offset)
+        iam_data = iam.get_subject_groups(subject.type, subject.id, system_id=system_id, limit=limit, offset=offset)
         count = iam_data["count"]
 
         relations = parse_obj_as(List[SubjectGroup], iam_data["results"])
@@ -192,12 +194,14 @@ class GroupService:
         return relations
 
     def list_subject_group_before_expired_at(
-        self, subject: Subject, expired_at: int, limit: int, offset: int
+        self, subject: Subject, system_id: str = "", expired_at: int = 0, limit: int = 10, offset: int = 0
     ) -> Tuple[int, List[SubjectGroup]]:
         """
         查询subject在指定过期时间之前的相关Group
         """
-        iam_data = iam.get_subject_groups(subject.type, subject.id, expired_at=expired_at, limit=limit, offset=offset)
+        iam_data = iam.get_subject_groups(
+            subject.type, subject.id, system_id=system_id, expired_at=expired_at, limit=limit, offset=offset
+        )
 
         count = iam_data["count"]
         relations = parse_obj_as(List[SubjectGroup], iam_data["results"])

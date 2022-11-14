@@ -301,21 +301,23 @@ class GroupBiz:
         return relation_beans
 
     def list_paging_subject_group(
-        self, subject: Subject, limit: int = 10, offset: int = 0
+        self, subject: Subject, system_id: str = "", limit: int = 10, offset: int = 0
     ) -> Tuple[int, List[SubjectGroupBean]]:
         """
         查询subject所属的用户组
         """
-        count, relations = self.group_svc.list_subject_group(subject, limit=limit, offset=offset)
+        count, relations = self.group_svc.list_subject_group(subject, system_id=system_id, limit=limit, offset=offset)
         return count, self._convert_to_subject_group_beans(relations)
 
     def list_paging_subject_group_before_expired_at(
-        self, subject: Subject, expired_at: int, limit: int, offset: int
+        self, subject: Subject, system_id: str = "", expired_at: int = 0, limit: int = 10, offset: int = 0
     ) -> Tuple[int, List[SubjectGroupBean]]:
         """
         分页查询指定过期时间之前的用户组
         """
-        count, relations = self.group_svc.list_subject_group_before_expired_at(subject, expired_at, limit, offset)
+        count, relations = self.group_svc.list_subject_group_before_expired_at(
+            subject, system_id, expired_at, limit, offset
+        )
         return count, self._convert_to_subject_group_beans(relations)
 
     def list_all_subject_group(self, subject: Subject) -> List[SubjectGroupBean]:
