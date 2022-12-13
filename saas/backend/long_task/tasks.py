@@ -205,7 +205,7 @@ class TaskFactory(Task):
 
         params = handler.get_params()
 
-        celery_id = self.request.id or ""
+        celery_id = self.request.id if self.request else ""
         TaskDetail.objects.filter(pk=id).update(
             celery_id=celery_id,
             status=TaskStatus.RUNNING.value,  # type: ignore[attr-defined]
