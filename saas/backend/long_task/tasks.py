@@ -18,7 +18,7 @@ from abc import ABCMeta, abstractmethod
 from datetime import timedelta
 from typing import Any, Dict, List, Type
 
-from celery import Task
+from celery import Task, current_app
 from celery import shared_task as task
 from django.db.models import Max
 from django.utils import timezone
@@ -186,6 +186,9 @@ class SubTask(Task):
         ResultStore(task.id).clear()
 
 
+current_app.tasks.register(SubTask())
+
+
 class TaskFactory(Task):
     name = "backend.long_task.tasks.TaskFactory"
 
@@ -212,6 +215,9 @@ class TaskFactory(Task):
         )
 
         SubTask().delay(id)
+
+
+current_app.tasks.register(TaskFactory())
 
 
 def register_handler(_type: str):
