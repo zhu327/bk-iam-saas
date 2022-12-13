@@ -18,7 +18,8 @@ from abc import ABCMeta, abstractmethod
 from datetime import timedelta
 from typing import Any, Dict, List, Type
 
-from celery import Task, task
+from celery import Task
+from celery import shared_task as task
 from django.db.models import Max
 from django.utils import timezone
 
@@ -120,6 +121,8 @@ class ResultStore:
 
 
 class SubTask(Task):
+    name = "backend.long_task.tasks.SubTask"
+
     def run(self, id: int):
         # 查询任务
         task_detail = TaskDetail.objects.get(pk=id)
@@ -184,6 +187,8 @@ class SubTask(Task):
 
 
 class TaskFactory(Task):
+    name = "backend.long_task.tasks.TaskFactory"
+
     def run(self, id: int):
         # 查询任务
         task_detail = TaskDetail.objects.get(pk=id)

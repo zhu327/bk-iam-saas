@@ -1,2 +1,2 @@
 #!/bin/bash
-python manage.py celery beat -l info
+celery -A celery_app beat -l info
