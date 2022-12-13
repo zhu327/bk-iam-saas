@@ -234,4 +234,4 @@ def retry_long_task():
         status__in=[TaskStatus.PENDING.value, TaskStatus.RUNNING.value], created_time__lt=day_before
     )
     for t in qs:
-        TaskFactory()(t.id)
+        TaskFactory().run(t.id)
