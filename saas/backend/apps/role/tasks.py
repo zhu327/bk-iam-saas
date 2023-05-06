@@ -640,3 +640,46 @@ class InitBizGradeManagerTask(Task):
 
 
 current_app.tasks.register(InitBizGradeManagerTask())
+
+
+from backend.apps.group.tasks import GroupAuthorizationTask
+from backend.biz.role import RoleListQuery
+
+fix_system_id = "bk_log_search"
+
+biz = RoleBiz()
+group_biz = GroupBiz()
+gt = InitBizGradeManagerTask()
+
+projects = list_project()
+for project in projects:
+    role = Role.objects.filter(
+        name=project["name"],
+        type=RoleType.GRADE_MANAGER.value,
+    ).first()
+    if not role:
+        continue
+    biz = RoleBiz()
+    auth_scopes = biz.list_auth_scope(role.id)
+    need_fix = True
+    for auth_scope in auth_scopes:
+        if auth_scope.system_id == fix_system_id:
+            need_fix = False
+            break
+    if not need_fix:
+        continue
+    print("fix role:", role.name)
+    new_role_info = gt._init_role_info(project, [])
+    biz.svc.update_role_auth_scope(role.id, new_role_info.authorization_scopes)
+    # 用户组授权
+    for name_suffix in [ManagementGroupNameSuffixEnum.OPS.value, ManagementGroupNameSuffixEnum.READ.value]:
+        group_name = project["name"] + name_suffix
+        group = RoleListQuery(role, None).query_group().filter(name=group_name).first()
+        if not group:
+            continue
+        print("fix group:", group.name)
+        templates = gt._init_group_auth_info(new_role_info.dict()["authorization_scopes"], name_suffix)
+        for template in templates:
+            if template.system_id == fix_system_id:
+                group_biz.grant(role, group, [template], need_check=False)
+                break
